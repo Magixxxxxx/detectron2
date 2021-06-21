@@ -6,7 +6,7 @@ MODEL:
   ROI_BOX_HEAD:
     CLS_AGNOSTIC_BBOX_REG: True
 DATASETS:
-  TRAIN: ('voc[1,10]_train', )
+  TRAIN: ('voc[16,20]_train', )
   TEST: ('voc_2007_test', )
 SOLVER:
   IMS_PER_BATCH: 8
@@ -16,5 +16,5 @@ SOLVER:
   WARMUP_ITERS: 100
 TEST:
   EVAL_PERIOD: 3000
-OUTPUT_DIR: "./output/voc[1,10]"
+OUTPUT_DIR: "./output/voc[16,20]"
 SEED: 9999

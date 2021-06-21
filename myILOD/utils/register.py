@@ -8,8 +8,8 @@ ANN_ROOT = os.path.join(DATASET_ROOT, 'annotations')
 TRAIN_PATH = os.path.join(DATASET_ROOT, 'train2007')
 VAL_PATH = os.path.join(DATASET_ROOT, 'val2007')
 
-TRAIN_JSON = os.path.join(ANN_ROOT, '[1, 20]-voc_train2007.json')
-VAL_JSON = os.path.join(ANN_ROOT, '[1, 20]-voc_val2007.json')
+TRAIN_JSON = os.path.join(ANN_ROOT, 'train.json')
+VAL_JSON = os.path.join(ANN_ROOT, 'test_woDifficult.json')
 
 # 数据集类别元数据
 DATASET_CATEGORIES = {
@@ -27,6 +27,10 @@ PREDEFINED_SPLITS_DATASET = {
 PREDEFINED_SPLITS_DATASET.update({
         'voc{}_val'.format(v.split('_')[0]) : (TRAIN_PATH, os.path.join(ANN_ROOT, v)) 
         for v in os.listdir(ANN_ROOT) if 'val' in v
+    })
+PREDEFINED_SPLITS_DATASET.update({
+        'voc_train' : (TRAIN_PATH, os.path.join(ANN_ROOT, TRAIN_JSON)),
+        'voc_val_woDifficult' : (TRAIN_PATH, os.path.join(ANN_ROOT, VAL_JSON)),
     })
 
 def register_dataset():

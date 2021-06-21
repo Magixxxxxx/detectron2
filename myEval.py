@@ -114,7 +114,6 @@ def setup(args):
     cfg = get_cfg()
     cfg.DATALOADER.NUM_WORKERS = 4
 
-    
     cfg.merge_from_file(args.config_file)   # 从config file 覆盖配置
     cfg.merge_from_list(args.opts)          # 从CLI参数 覆盖配置
 

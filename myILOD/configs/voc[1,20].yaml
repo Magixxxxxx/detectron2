@@ -1,6 +1,6 @@
 _BASE_: "./Base-RCNN-C4.yaml"
 MODEL:
-  WEIGHTS: "./R-50.pkl"
+  WEIGHTS: "./myILOD/params/R-50.pkl"
   ROI_HEADS:
     NUM_CLASSES: 21
   ROI_BOX_HEAD:

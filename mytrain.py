@@ -1,7 +1,7 @@
 import os
 import logging
 from collections import OrderedDict
-
+from random import randint
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -90,9 +90,10 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    args.config_file = "myILOD/configs/voc[1,10].yaml"
+    args.config_file = "myILOD/configs/voc.yaml"
     args.num_gpus = 4
-    args.dist_url='tcp://127.0.0.1:52133'
+
+    args.dist_url='tcp://127.0.0.1:{}'.format(randint(30000,50000))
     print("Command Line Args:", args)
 
     launch(
