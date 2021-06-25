@@ -25,12 +25,8 @@ PREDEFINED_SPLITS_DATASET = {
         for v in os.listdir(ANN_ROOT) if 'train' in v
     }
 PREDEFINED_SPLITS_DATASET.update({
-        'voc{}_val'.format(v.split('_')[0]) : (TRAIN_PATH, os.path.join(ANN_ROOT, v)) 
-        for v in os.listdir(ANN_ROOT) if 'val' in v
-    })
-PREDEFINED_SPLITS_DATASET.update({
-        'voc_train' : (TRAIN_PATH, os.path.join(ANN_ROOT, TRAIN_JSON)),
-        'voc_val_woDifficult' : (TRAIN_PATH, os.path.join(ANN_ROOT, VAL_JSON)),
+        'voc{}_test'.format(v.split('_')[0]) : (VAL_PATH, os.path.join(ANN_ROOT, v)) 
+        for v in os.listdir(ANN_ROOT) if 'test' in v
     })
 
 def register_dataset():

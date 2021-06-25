@@ -21,7 +21,6 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
     """
     Evaluate Pascal VOC style AP for Pascal VOC dataset.
     It contains a synchronization, therefore has to be called from all ranks.
-
     Note that the concept of AP can be implemented in different ways and may not
     produce identical results. This class mimics the implementation of the official
     Pascal VOC Matlab API, and should produce similar but not identical results to the
@@ -87,6 +86,8 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
             res_file_template = os.path.join(dirname, "{}.txt")
 
             aps = defaultdict(list)  # iou -> ap per class
+
+            # TODO:
             for cls_id, cls_name in enumerate(self._class_names):
                 lines = predictions.get(cls_id, [""])
 
@@ -107,6 +108,7 @@ class PascalVOCDetectionEvaluator(DatasetEvaluator):
         ret = OrderedDict()
         mAP = {iou: np.mean(x) for iou, x in aps.items()}
         ret["bbox"] = {"AP": np.mean(list(mAP.values())), "AP50": mAP[50], "AP75": mAP[75]}
+        ret["perclass_ap50"] = {cls_name:aps[50][cls_id] for cls_id, cls_name in enumerate(self._class_names)}
         return ret
 
 
@@ -186,9 +188,7 @@ def voc_eval(detpath, annopath, imagesetfile, classname, ovthresh=0.5, use_07_me
                                 classname,
                                 [ovthresh],
                                 [use_07_metric])
-
     Top level function that does the PASCAL VOC evaluation.
-
     detpath: Path to detections
         detpath.format(classname) should produce the detection results file.
     annopath: Path to annotations

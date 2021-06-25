@@ -16,5 +16,5 @@ SOLVER:
   WARMUP_ITERS: 100
 TEST:
   EVAL_PERIOD: 3000
-OUTPUT_DIR: "./output/voc[1,15]"
+OUTPUT_DIR: "./output/eval_voc[1,15]"
 SEED: 9999

@@ -1,14 +1,19 @@
 _BASE_: "./Base-RCNN-C4.yaml"
 MODEL:
+  BACKBONE:
+    FREEZE_AT: 0
+    NAME: "build_PBresnet_backbone"
   WEIGHTS: "./myILOD/params/R-50.pkl"
   ROI_HEADS:
-    NUM_CLASSES: 21
-  ROI_BOX_HEAD:
+    NUM_CLASSES: 20
     CLS_AGNOSTIC_BBOX_REG: True
+DATALOADER:
+  NUM_WORKERS: 8
 DATASETS:
-  TRAIN: ('voc[11,20]_train', )
+  TRAIN: ('voc[1,15]_train', )
   TEST: ('voc_2007_test', )
 SOLVER:
+  OPTIM: "Adam"
   IMS_PER_BATCH: 8
   BASE_LR: 0.01
   STEPS: (12000, 16000)
@@ -16,6 +21,6 @@ SOLVER:
   WARMUP_ITERS: 100
   CHECKPOINT_PERIOD: 2000
 TEST:
-  EVAL_PERIOD: 2000
-OUTPUT_DIR: "./output/voc[11,20]"
+  EVAL_PERIOD: 1000
+OUTPUT_DIR: "./output/pb[body]voc[1,15]"
 SEED: 9999

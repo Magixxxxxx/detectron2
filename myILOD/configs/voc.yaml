@@ -4,8 +4,8 @@ MODEL:
   ROI_HEADS:
     NUM_CLASSES: 21
 DATASETS:
-  TRAIN: ('voc_train', )
-  TEST: ('voc_val_woDifficult', )
+  TRAIN: ('voc_2007_train', )
+  TEST: ('voc_2007_test', )
 SOLVER:
   IMS_PER_BATCH: 8
   BASE_LR: 0.01
