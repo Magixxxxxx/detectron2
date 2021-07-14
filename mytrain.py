@@ -68,7 +68,7 @@ def main(args):
     for n,p in model.named_parameters():
         if p.requires_grad:
             print(n)
-    return None
+
     trainer = Trainer(cfg)
     trainer.resume_or_load(resume=args.resume)
     return trainer.train()
@@ -76,8 +76,8 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    args.config_file = "myILOD/configs/pb[body]voc[1,10].yaml"
-    args.num_gpus = 0
+    args.config_file = "myILOD/configs/voc.yaml"
+    args.num_gpus = 2
 
     args.dist_url='tcp://127.0.0.1:{}'.format(randint(30000,50000))
     print("Command Line Args:", args)

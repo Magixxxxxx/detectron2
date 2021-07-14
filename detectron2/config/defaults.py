@@ -500,7 +500,7 @@ _C.SOLVER = CN()
 
 # TODO:ILOD configs
 
-_C.SOLVER.OPTIM = 'Adam'
+_C.SOLVER.OPTIM = 'SGD'
 _C.SOLVER.MASK_LR = 0.00001
 
 # See detectron2/solver/build.py for LR scheduler options
