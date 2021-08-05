@@ -76,8 +76,8 @@ def main(args):
 
 if __name__ == "__main__":
     args = default_argument_parser().parse_args()
-    args.config_file = "myILOD/configs/voc.yaml"
-    args.num_gpus = 2
+    args.config_file = "myILOD/configs/pb[roi_heads].yaml"
+    args.num_gpus = 4
 
     args.dist_url='tcp://127.0.0.1:{}'.format(randint(30000,50000))
     print("Command Line Args:", args)

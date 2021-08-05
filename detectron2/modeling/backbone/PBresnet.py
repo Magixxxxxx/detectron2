@@ -11,7 +11,6 @@ from detectron2.layers import (
     ElementWiseLinear,
     ElementWiseConv2d,
     CNNBlockBase,
-    Conv2d,
     DeformConv,
     ModulatedDeformConv,
     ShapeSpec,

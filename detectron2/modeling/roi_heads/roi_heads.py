@@ -13,6 +13,10 @@ from detectron2.utils.events import get_event_storage
 from detectron2.utils.registry import Registry
 
 from ..backbone.resnet import BottleneckBlock, make_stage
+
+from ..backbone.PBresnet import BottleneckBlock as PB_BottleneckBlock
+from ..backbone.PBresnet import make_stage as PB_make_stage
+
 from ..matcher import Matcher
 from ..poolers import ROIPooler
 from ..proposal_generator.proposal_utils import add_ground_truth_to_proposals
@@ -811,3 +815,135 @@ class StandardROIHeads(ROIHeads):
             pred_boxes = [x.pred_boxes for x in instances]
             keypoint_features = self.keypoint_pooler(features, pred_boxes)
             return self.keypoint_head(keypoint_features, instances)
+
+@ROI_HEADS_REGISTRY.register()
+class PBROIHeads(ROIHeads):
+    """
+    The ROIHeads in a typical "C4" R-CNN model, where
+    the box and mask head share the cropping and
+    the per-region feature computation by a Res5 block.
+    """
+
+    def __init__(self, cfg, input_shape):
+        super().__init__(cfg)
+
+        # fmt: off
+        self.in_features  = cfg.MODEL.ROI_HEADS.IN_FEATURES
+        pooler_resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
+        pooler_type       = cfg.MODEL.ROI_BOX_HEAD.POOLER_TYPE
+        pooler_scales     = (1.0 / input_shape[self.in_features[0]].stride, )
+        sampling_ratio    = cfg.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
+        self.mask_on      = cfg.MODEL.MASK_ON
+        # fmt: on
+        assert not cfg.MODEL.KEYPOINT_ON
+        assert len(self.in_features) == 1
+
+        self.pooler = ROIPooler(
+            output_size=pooler_resolution,
+            scales=pooler_scales,
+            sampling_ratio=sampling_ratio,
+            pooler_type=pooler_type,
+        )
+
+        self.res5, out_channels = self._build_res5_block(cfg)
+        self.box_predictor = FastRCNNOutputLayers(
+            cfg, ShapeSpec(channels=out_channels, height=1, width=1)
+        )
+
+        if self.mask_on:
+            self.mask_head = build_mask_head(
+                cfg,
+                ShapeSpec(channels=out_channels, width=pooler_resolution, height=pooler_resolution),
+            )
+
+    def _build_res5_block(self, cfg):
+        # fmt: off
+        stage_channel_factor = 2 ** 3  # res5 is 8x res2
+        num_groups           = cfg.MODEL.RESNETS.NUM_GROUPS
+        width_per_group      = cfg.MODEL.RESNETS.WIDTH_PER_GROUP
+        bottleneck_channels  = num_groups * width_per_group * stage_channel_factor
+        out_channels         = cfg.MODEL.RESNETS.RES2_OUT_CHANNELS * stage_channel_factor
+        stride_in_1x1        = cfg.MODEL.RESNETS.STRIDE_IN_1X1
+        norm                 = cfg.MODEL.RESNETS.NORM
+        assert not cfg.MODEL.RESNETS.DEFORM_ON_PER_STAGE[-1], \
+            "Deformable conv is not yet supported in res5 head."
+        # fmt: on
+
+        blocks = PB_make_stage(
+            PB_BottleneckBlock,
+            3,
+            first_stride=2,
+            in_channels=out_channels // 2,
+            bottleneck_channels=bottleneck_channels,
+            out_channels=out_channels,
+            num_groups=num_groups,
+            norm=norm,
+            stride_in_1x1=stride_in_1x1,
+        )
+        return nn.Sequential(*blocks), out_channels
+
+    def _shared_roi_transform(self, features, boxes):
+        x = self.pooler(features, boxes)
+        return self.res5(x)
+
+    def forward(self, images, features, proposals, targets=None):
+        """
+        See :meth:`ROIHeads.forward`.
+        """
+        del images
+
+        if self.training:
+            assert targets
+            proposals = self.label_and_sample_proposals(proposals, targets)
+        del targets
+
+        proposal_boxes = [x.proposal_boxes for x in proposals]
+        box_features = self._shared_roi_transform(
+            [features[f] for f in self.in_features], proposal_boxes
+        )
+        predictions = self.box_predictor(box_features.mean(dim=[2, 3]))
+
+        if self.training:
+            del features
+            losses = self.box_predictor.losses(predictions, proposals)
+            if self.mask_on:
+                proposals, fg_selection_masks = select_foreground_proposals(
+                    proposals, self.num_classes
+                )
+                # Since the ROI feature transform is shared between boxes and masks,
+                # we don't need to recompute features. The mask loss is only defined
+                # on foreground proposals, so we need to select out the foreground
+                # features.
+                mask_features = box_features[torch.cat(fg_selection_masks, dim=0)]
+                del box_features
+                losses.update(self.mask_head(mask_features, proposals))
+            return [], losses
+        else:
+            pred_instances, _ = self.box_predictor.inference(predictions, proposals)
+            pred_instances = self.forward_with_given_boxes(features, pred_instances)
+            return pred_instances, {}
+
+    def forward_with_given_boxes(self, features, instances):
+        """
+        Use the given boxes in `instances` to produce other (non-box) per-ROI outputs.
+
+        Args:
+            features: same as in `forward()`
+            instances (list[Instances]): instances to predict other outputs. Expect the keys
+                "pred_boxes" and "pred_classes" to exist.
+
+        Returns:
+            instances (Instances):
+                the same `Instances` object, with extra
+                fields such as `pred_masks` or `pred_keypoints`.
+        """
+        assert not self.training
+        assert instances[0].has("pred_boxes") and instances[0].has("pred_classes")
+
+        if self.mask_on:
+            features = [features[f] for f in self.in_features]
+            x = self._shared_roi_transform(features, [x.pred_boxes for x in instances])
+            return self.mask_head(x, instances)
+        else:
+            return instances
+
