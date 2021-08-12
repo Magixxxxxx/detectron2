@@ -6,25 +6,24 @@ MODEL:
   RPN:
     HEAD_NAME: "PBRPNHead"
   ROI_HEADS:
-    NAME: "PBROIHeads"
     NUM_CLASSES: 20
   ROI_BOX_HEAD:
     CLS_AGNOSTIC_BBOX_REG: True
-  WEIGHTS: "./output/voc[1,15]/model_final.pth"
+  WEIGHTS: "./output/voc[1,19]/model_final.pth"
 DATALOADER:
   NUM_WORKERS: 8
 DATASETS:
-  TRAIN: ('voc[1,20]_train', )
+  TRAIN: ('voc[20,20]_train', )
   TEST: ('voc_2007_test', )
 SOLVER:
   OPTIM: "Adam"
   IMS_PER_BATCH: 8
   BASE_LR: 0.0001
   MASK_LR: 0.00001
-  STEPS: (12000, 16000)
-  MAX_ITER: 18000
+  STEPS: (2000, 3000)
+  MAX_ITER: 4000
   WARMUP_ITERS: 100
-  CHECKPOINT_PERIOD: 1000
+  CHECKPOINT_PERIOD: 500
 TEST:
-  EVAL_PERIOD: 2000
+  EVAL_PERIOD: 500
 OUTPUT_DIR: "./output/pb[roi_heads]19+1"

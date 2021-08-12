@@ -5,13 +5,14 @@ MODEL:
   WEIGHTS: "./myILOD/params/R-50.pkl"
   ROI_HEADS:
     NUM_CLASSES: 20
+  ROI_BOX_HEAD:
+    CLS_AGNOSTIC_BBOX_REG: True
 DATALOADER:
   NUM_WORKERS: 8
 DATASETS:
   TRAIN: ('voc[1,15]_train', )
   TEST: ('voc_2007_test', )
 SOLVER:
-  OPTIM: 'SGD'
   IMS_PER_BATCH: 8
   BASE_LR: 0.01
   STEPS: (12000, 16000)
@@ -20,4 +21,3 @@ SOLVER:
 TEST:
   EVAL_PERIOD: 1000
 OUTPUT_DIR: "./output/freeze[body]voc[1,15]SGD"
-SEED: 9999

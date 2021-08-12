@@ -3,24 +3,27 @@ MODEL:
   BACKBONE:
     FREEZE_AT: 0
     NAME: "build_PBresnet_backbone"
-  WEIGHTS: "./myILOD/params/R-50.pkl"
+  RPN:
+    HEAD_NAME: "PBRPNHead"
   ROI_HEADS:
+    NAME: "PBROIHeads"
     NUM_CLASSES: 20
+  ROI_BOX_HEAD:
     CLS_AGNOSTIC_BBOX_REG: True
+  WEIGHTS: "./output/voc[1,19]/model_final.pth"
 DATALOADER:
   NUM_WORKERS: 8
 DATASETS:
-  TRAIN: ('voc[1,1]_train', )
+  TRAIN: ('voc[20,20]_train', )
   TEST: ('voc_2007_test', )
 SOLVER:
   OPTIM: "Adam"
   IMS_PER_BATCH: 8
   BASE_LR: 0.01
-  STEPS: (6000, 8000)
-  MAX_ITER: 9000
+  STEPS: (2000, 3000)
+  MAX_ITER: 4000
   WARMUP_ITERS: 100
   CHECKPOINT_PERIOD: 1000
 TEST:
-  EVAL_PERIOD: 1000
-OUTPUT_DIR: "./output/pb[body]voc[1,1]"
-SEED: 9999
+  EVAL_PERIOD: 500
+OUTPUT_DIR: "./output/pb[roi_heads]19+1"

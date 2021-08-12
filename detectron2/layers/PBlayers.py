@@ -102,6 +102,8 @@ class ElementWiseConv2d(nn.Module):
         # Mask weights with above mask.
         weight_thresholded = mask_thresholded * self.weight  #note:mask定义为变量，会在前向传播后更新
         # Perform conv using modified weight.
+        if not self.norm: return F.conv2d(input, weight_thresholded, self.bias, self.stride,
+                        self.padding, self.dilation, self.groups)
         return self.norm(F.conv2d(input, weight_thresholded, self.bias, self.stride,
                         self.padding, self.dilation, self.groups))
 
